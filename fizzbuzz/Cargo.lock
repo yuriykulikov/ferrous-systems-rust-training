@@ -3,7 +3,3 @@
 [[package]]
 name = "ferrous-systems-rust-training"
 version = "0.1.0"
-
-[[package]]
-name = "fizzbuzz"
-version = "0.1.0"
