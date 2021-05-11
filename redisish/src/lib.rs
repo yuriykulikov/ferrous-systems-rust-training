@@ -1,9 +1,17 @@
+use std::fmt;
+
+/// Redisish command\
+/// The protocol has two commands:
+///
+/// * PUBLISH <message>\n
+/// * RETRIEVE\n
 #[derive(Eq, PartialEq, Debug)]
 pub enum Command {
     Publish(String),
     Retrieve,
 }
 
+/// Redisish parsing error
 #[derive(Eq, PartialEq, Debug)]
 pub enum Error {
     MissingNewline,
@@ -12,6 +20,9 @@ pub enum Error {
     UnknownVerb,
 }
 
+///
+/// # Parse redisish command
+/// Parses redisish command and returns [Command] if successful or an [Error] otherwise
 ///
 /// ## Protocol Specification
 /// https://ferrous-systems.github.io/teaching-material/assignments/redisish.html
@@ -34,16 +45,20 @@ pub fn parse(input: &str) -> Result<Command, Error> {
 
     match first_newline_pos {
         // A missing newline at the end of the message is an error
-        None => { return Err(Error::MissingNewline); }
+        None => {
+            return Err(Error::MissingNewline);
+        }
         // Messages cannot contain newlines
-        Some(index) if index != input.len() - 1 => { return Err(Error::NewlineInMessage); }
+        Some(index) if index != input.len() - 1 => {
+            return Err(Error::NewlineInMessage);
+        }
         _ => { /* OK */ }
     }
 
     let mut split = input.trim_end_matches('\n').splitn(2, ' ');
 
     let verb = split.next();
-    return match verb {
+    match verb {
         Some("PUBLISH") => {
             let payload = split.next().unwrap_or("").into();
             Ok(Command::Publish(payload))
@@ -55,8 +70,26 @@ pub fn parse(input: &str) -> Result<Command, Error> {
             Ok(Command::Retrieve)
         }
         _ => Err(Error::UnknownVerb),
-    };
+    }
 }
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::Malformed(message) => write!(f, "Redisish error, malformed string: {}", message),
+            Error::MissingNewline => write!(
+                f,
+                "Redisish error, missing newline at the end of the string"
+            ),
+            Error::NewlineInMessage => {
+                write!(f, "Redisish error, newline is not at the end of the string")
+            }
+            Error::UnknownVerb => write!(f, "Redisish error, verb is unknown"),
+        }
+    }
+}
+
+impl std::error::Error for Error {}
 
 #[cfg(test)]
 mod tests {
@@ -142,5 +175,25 @@ mod tests {
         let result: Result<Command, Error> = parse(line);
         assert!(result.is_err());
         assert_eq!(result, Err(Error::UnknownVerb));
+    }
+
+    #[test]
+    fn display_error_test() {
+        assert_eq!(
+            format!("{}", Error::UnknownVerb),
+            "Redisish error, verb is unknown"
+        );
+        assert_eq!(
+            format!("{}", Error::Malformed("oops".to_owned())),
+            "Redisish error, malformed string: oops"
+        );
+        assert_eq!(
+            format!("{}", Error::NewlineInMessage),
+            "Redisish error, newline is not at the end of the string"
+        );
+        assert_eq!(
+            format!("{}", Error::MissingNewline),
+            "Redisish error, missing newline at the end of the string"
+        );
     }
 }
