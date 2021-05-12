@@ -1,4 +1,5 @@
 use std::fmt;
+use std::str::SplitN;
 
 /// Redisish command\
 /// The protocol has two commands:
@@ -41,6 +42,20 @@ pub enum Error {
 /// Other cases (not part of the task):
 /// * RETRIEVE does not have the payload, the only valid RETRIEVE message is `RETRIEVE/n`
 pub fn parse(input: &str) -> Result<Command, Error> {
+    check_preconditions(input)?;
+
+    let mut split = input.trim_end_matches('\n').splitn(2, ' ');
+
+    let verb = split.next();
+    match verb {
+        Some("PUBLISH") => parse_publish(&mut split),
+        Some("RETRIEVE") => parse_retrieve(input, &mut split),
+        _ => Err(Error::UnknownVerb),
+    }
+}
+
+/// Check universal preconditions such as newline positions
+fn check_preconditions(input: &str) -> Result<(), Error> {
     let first_newline_pos = input.find('\n');
 
     match first_newline_pos {
@@ -55,22 +70,19 @@ pub fn parse(input: &str) -> Result<Command, Error> {
         _ => { /* OK */ }
     }
 
-    let mut split = input.trim_end_matches('\n').splitn(2, ' ');
+    Ok(())
+}
 
-    let verb = split.next();
-    match verb {
-        Some("PUBLISH") => {
-            let payload = split.next().unwrap_or("").into();
-            Ok(Command::Publish(payload))
-        }
-        Some("RETRIEVE") => {
-            if split.next().is_some() {
-                return Err(Error::Malformed(format!("Malformed: {}", input)));
-            }
-            Ok(Command::Retrieve)
-        }
-        _ => Err(Error::UnknownVerb),
+fn parse_retrieve(input: &str, split: &mut SplitN<char>) -> Result<Command, Error> {
+    if split.next().is_some() {
+        return Err(Error::Malformed(format!("Malformed: {}", input)));
     }
+    Ok(Command::Retrieve)
+}
+
+fn parse_publish(split: &mut SplitN<char>) -> Result<Command, Error> {
+    let payload = split.next().unwrap_or("").into();
+    Ok(Command::Publish(payload))
 }
 
 impl fmt::Display for Error {
