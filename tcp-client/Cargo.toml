@@ -8,4 +8,6 @@ edition = "2018"
 
 [dependencies]
 redisish = { path = "../redisish" }
-shrust = "0.0.7"
+crossterm = { version = "0.19" }
+tui = { version = "0.14", default-features = false, features = ['crossterm', 'serde'] }
+itertools = "0.7.4"
