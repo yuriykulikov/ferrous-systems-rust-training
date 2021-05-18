@@ -104,11 +104,13 @@ impl fmt::Display for Error {
 impl Command {
     pub fn as_string(&self) -> String {
         match self {
-            Command::Publish(payload) => { format!("PUBLISH {}\n", payload)}
-            Command::Retrieve => {"RETRIEVE\n".to_owned()}
+            Command::Publish(payload) => {
+                format!("PUBLISH {}\n", payload)
+            }
+            Command::Retrieve => "RETRIEVE\n".to_owned(),
         }
     }
- }
+}
 
 impl std::error::Error for Error {}
 
