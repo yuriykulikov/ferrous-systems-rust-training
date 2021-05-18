@@ -1,9 +1,9 @@
 use std::io::{BufRead, BufReader, Write};
-use std::net::{TcpStream};
+use std::net::TcpStream;
 
 use shrust::{Shell, ShellIO};
 
-use redisish::{Command};
+use redisish::Command;
 
 fn main() {
     let mut shell = Shell::new(());

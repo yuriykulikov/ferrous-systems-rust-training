@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 redisish = { path = "../redisish" }
+tokio = { version = "1.6", features = ["full"] }
