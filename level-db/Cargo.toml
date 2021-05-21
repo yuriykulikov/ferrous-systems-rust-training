@@ -1,11 +1,15 @@
 [package]
-name = "ferrous-systems-rust-training"
+name = "level-db"
 version = "0.1.0"
 authors = ["Yuriy Kulikov <yuriy.kulikov.87@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[workspace]
-members = ["fizzbuzz", "redisish", "tcp-server", "tcp-client", "level-db"]
-default-members = ["fizzbuzz", "redisish", "tcp-server", "tcp-client", "level-db"]
+
 [dependencies]
+leveldb-sys = "*"
+libc = "*"
+anyhow = "1.0.40"
+
+[dev-dependencies]
+tempdir = "*"
